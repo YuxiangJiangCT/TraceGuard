@@ -28,6 +28,7 @@ wheels/
 
 # Virtual environments
 .venv/
+.venv-spike/
 venv/
 env/
 ENV/
