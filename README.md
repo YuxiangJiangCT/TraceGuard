@@ -139,9 +139,34 @@ add_pattern("internal_id", r"INT-\d{6}")
   API that a planted `leak@example.com` is **absent** from
   `gen_ai.input.messages` while `[REDACTED]` is present and
   `gen_ai.usage.input_tokens` / `gen_ai.request.model` survive unchanged.
-- **18 unit tests pass** (`pytest`), **`ruff check` clean**.
-  Test split: per-pattern positives/negatives, JSON-aware redactor
-  (the ADR-002 shape), three-policy behavior through an in-memory exporter.
+- **24 unit tests pass** (`pytest`), **`ruff check` clean**, **CI green**
+  on Python 3.10 / 3.11 / 3.12. Test split: per-pattern positives/negatives,
+  JSON-aware redactor (the ADR-002 shape), three-policy behavior through
+  an in-memory exporter, CLI commands against a mocked Jaeger.
+
+---
+
+## Validation results
+
+3 tasks, each sent to Claude (`claude-haiku-4-5-20251001`) through
+OpenLLMetry with `TraceGuardSpanExporter` (`policy=balanced`). Spans
+inspected via the Jaeger HTTP API; "caught" = the planted string is not
+present in the post-export span content. Reproduce with
+`python -m benchmark.run | python -m benchmark.report`.
+
+| task | planted | caught | recall | precision | completeness | matched patterns |
+|---|---:|---:|---:|---:|---:|---|
+| `email_only` | 1 | 1 | 1.00 | 1.00 | 1.00 | email |
+| `mixed_pii` | 4 | 4 | 1.00 | 1.00 | 1.00 | api_key, email, us_phone, us_ssn |
+| `no_pii_control` | 0 | 0 | 1.00 | 1.00 | 1.00 | — |
+
+Macro averages: **recall 1.00**, **precision 1.00**, **completeness 1.00**.
+
+These numbers reflect *this small, well-defined task set* — they are NOT a
+guarantee for arbitrary PII formats. Regex coverage is intentionally
+conservative; see [docs/PRD.md](docs/PRD.md) §3.2 NG4 for what TraceGuard
+does *not* claim to catch. Expand `benchmark/tasks.py` and rerun to
+re-evaluate on your own data.
 
 ---
 

@@ -40,4 +40,4 @@ jobs:
       - name: Install ruff
         run: pip install "ruff>=0.6"
       - name: Run ruff check
-        run: ruff check src tests
+        run: ruff check src tests benchmark
