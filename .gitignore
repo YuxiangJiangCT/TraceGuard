@@ -1,5 +1,6 @@
 # Private/local-only files
 *.local.md
+*.local.sh
 *.local
 .env
 .env.*
