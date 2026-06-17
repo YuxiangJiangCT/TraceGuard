@@ -1,13 +1,13 @@
-"""TraceGuard — privacy-first redaction for OpenTelemetry GenAI traces.
+"""SpanRedact — privacy-first redaction for OpenTelemetry GenAI traces.
 
 Public API:
-    from traceguard import init
+    from spanredact import init
     init(policy="balanced")        # wraps the OTLP exporter with redaction
 
-    from traceguard import attach
+    from spanredact import attach
     attach(tracer_provider, ...)   # add redaction to an existing provider
 
-    from traceguard import add_pattern
+    from spanredact import add_pattern
     add_pattern("internal_id", r"INT-\\d{6}")
 """
 

@@ -10,11 +10,11 @@ change.
 Prerequisites:
     1. Jaeger running:  docker compose -f examples/docker-compose.yml up -d
     2. Then run:        uv run --python .venv-spike python examples/hello_jaeger.py
-    3. Open the UI:     http://localhost:16686  (service: "traceguard-hello")
+    3. Open the UI:     http://localhost:16686  (service: "spanredact-hello")
 
 What you'll see: a trace whose span carries gen_ai.prompt = "my email is
 a@b.com" — IN PLAIN TEXT, on a web page anyone on the team could open. That
-is the compliance problem TraceGuard exists to fix.
+is the compliance problem SpanRedact exists to fix.
 """
 
 from opentelemetry import trace
@@ -30,7 +30,7 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 # A Resource labels WHICH service these spans belong to. Without it Jaeger
 # files everything under "unknown_service". We name ours so it's findable in
 # the UI's service dropdown.
-resource = Resource.create({"service.name": "traceguard-hello"})
+resource = Resource.create({"service.name": "spanredact-hello"})
 
 provider = TracerProvider(resource=resource)
 
@@ -40,7 +40,7 @@ provider.add_span_processor(
 )
 trace.set_tracer_provider(provider)
 
-tracer = trace.get_tracer("traceguard.hello")
+tracer = trace.get_tracer("spanredact.hello")
 
 with tracer.start_as_current_span("hello-span") as span:
     span.set_attribute("greeting", "hello world")
@@ -50,4 +50,4 @@ with tracer.start_as_current_span("hello-span") as span:
 provider.shutdown()
 
 print("Sent 1 span to Jaeger. Open http://localhost:16686")
-print("Service: traceguard-hello  ->  find the 'hello-span' trace")
+print("Service: spanredact-hello  ->  find the 'hello-span' trace")

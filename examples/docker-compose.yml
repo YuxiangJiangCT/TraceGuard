@@ -1,4 +1,4 @@
-# Local Jaeger for TraceGuard examples. LOCAL DEVELOPMENT ONLY.
+# Local Jaeger for SpanRedact examples. LOCAL DEVELOPMENT ONLY.
 #
 # Jaeger v1 reached EOL 2025-12-31; v2 is the current line. We pin the v1
 # all-in-one image here purely because it is the simplest, well-documented,
@@ -11,7 +11,7 @@
 services:
   jaeger:
     image: jaegertracing/all-in-one:1.76.0
-    container_name: traceguard-jaeger
+    container_name: spanredact-jaeger
     environment:
       # Turn on the OTLP receiver so our OTLPSpanExporter can send spans in.
       - COLLECTOR_OTLP_ENABLED=true

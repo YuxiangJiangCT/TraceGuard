@@ -1,4 +1,4 @@
-"""Architecture spike for TraceGuard.
+"""Architecture spike for SpanRedact.
 
 Single question this spike answers:
     Can a custom SpanExporter wrapper redact a span attribute value before
@@ -110,7 +110,7 @@ def main() -> int:
     provider.add_span_processor(
         SimpleSpanProcessor(RedactingSpanExporter(ConsoleSpanExporter(out=buffer)))
     )
-    tracer = provider.get_tracer("traceguard.spike")
+    tracer = provider.get_tracer("spanredact.spike")
 
     with tracer.start_as_current_span("gen_ai.chat") as span:
         span.set_attribute("gen_ai.system", "anthropic")

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from traceguard.redaction.redactor import (
+from spanredact.redaction.redactor import (
     REDACTED,
     redact_attribute_value,
     redact_text,

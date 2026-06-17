@@ -1,4 +1,4 @@
-"""TraceGuardSpanExporter — wraps a downstream SpanExporter and redacts PII.
+"""SpanRedactExporter — wraps a downstream SpanExporter and redacts PII.
 
 Productionized version of spike/redact_exporter_spike.py (mechanism verified in
 ADR-001: ReadableSpan is read-only, so we build a NEW ReadableSpan with cleaned
@@ -10,9 +10,9 @@ Behavior depends on policy (ADR + Week 4):
   debug    — passthrough unchanged.
 
 Redacted spans get audit attributes:
-  traceguard.redaction.applied = True
-  traceguard.redaction.policy  = "balanced"
-  traceguard.redaction.patterns_matched = "email,us_phone"  (sorted, comma-join)
+  spanredact.redaction.applied = True
+  spanredact.redaction.policy  = "balanced"
+  spanredact.redaction.patterns_matched = "email,us_phone"  (sorted, comma-join)
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from ..policy.modes import CONTENT_KEYS, Policy
 from .redactor import redact_attribute_value
 
 
-class TraceGuardSpanExporter(SpanExporter):
+class SpanRedactExporter(SpanExporter):
     def __init__(
         self,
         wrapped: SpanExporter,
@@ -63,9 +63,9 @@ class TraceGuardSpanExporter(SpanExporter):
         attrs = dict(span.attributes or {})
         new_attrs, matched, changed = self._sanitize_attributes(attrs)
         if changed or matched:
-            new_attrs["traceguard.redaction.applied"] = True
-            new_attrs["traceguard.redaction.policy"] = self._policy.value
-            new_attrs["traceguard.redaction.patterns_matched"] = ",".join(
+            new_attrs["spanredact.redaction.applied"] = True
+            new_attrs["spanredact.redaction.policy"] = self._policy.value
+            new_attrs["spanredact.redaction.patterns_matched"] = ",".join(
                 sorted(matched)
             )
         # ReadableSpan is read-only; construct a fresh one (ADR-001). Use

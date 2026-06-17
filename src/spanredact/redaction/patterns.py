@@ -1,7 +1,7 @@
 """Default PII regex patterns, compiled once at import.
 
 Each pattern is (name, compiled_regex). The name is what we report in audit
-metadata (traceguard.redaction.patterns_matched). us_phone favors recall over
+metadata (spanredact.redaction.patterns_matched). us_phone favors recall over
 precision — it matches any 10-digit run and can over-match non-PII such as
 order IDs or timestamps (the intended privacy-first failure mode: over-redact
 rather than leak). credit_card matches 13-16 digit runs but is Luhn-validated
@@ -73,7 +73,7 @@ def add_pattern(name: str, regex: str) -> None:
     """Register a custom PII pattern (compiled and appended to DEFAULT_PATTERNS).
 
     Example:
-        from traceguard import add_pattern
+        from spanredact import add_pattern
         add_pattern("internal_id", r"INT-\\d{6}")
     """
     DEFAULT_PATTERNS.append((name, re.compile(regex)))

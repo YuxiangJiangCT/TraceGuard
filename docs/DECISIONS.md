@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Lightweight ADRs for TraceGuard. Each records context, the decision, the
+Lightweight ADRs for SpanRedact. Each records context, the decision, the
 evidence behind it, and the consequences. Newest first.
 
 ---
@@ -51,7 +51,7 @@ Running `traceloop-sdk==0.61.0` /
 
 ### Evidence
 `examples/hello_openllmetry.py` + Jaeger trace for service
-`traceguard-openllmetry-demo`, inspected via the Jaeger HTTP API
+`spanredact-openllmetry-demo`, inspected via the Jaeger HTTP API
 (`/api/traces?service=...`).
 
 ---
@@ -63,7 +63,7 @@ Running `traceloop-sdk==0.61.0` /
 
 ### Context
 
-PRD §6 originally described TraceGuard as an OTel `SpanProcessor`. Research
+PRD §6 originally described SpanRedact as an OTel `SpanProcessor`. Research
 showed this is not viable on the current OpenTelemetry Python SDK path:
 `SpanProcessor.on_end()` receives a `ReadableSpan`, and the OTel spec states
 that even if the passed span is technically writable, modifying it after the
@@ -114,7 +114,7 @@ trace/span IDs were preserved.
 
 ### Consequences
 
-- **Positive**: stable public API; TraceGuard upgrades independently of
+- **Positive**: stable public API; SpanRedact upgrades independently of
   OpenLLMetry; resolves the PRD §8 "SpanProcessor won't work" risk; also the
   natural place to handle streaming responses (export-time, after the span is
   final).

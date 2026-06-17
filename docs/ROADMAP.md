@@ -1,4 +1,4 @@
-# TraceGuard v0.1 Roadmap
+# SpanRedact v0.1 Roadmap
 
 > 8-week implementation plan, June 1 – July 27, 2026.
 > Companion to the [design doc](PRD.md). Decisions made along the way land
@@ -8,7 +8,7 @@
 
 ## ⚠️ Architecture correction (vs PRD v0.2)
 
-PRD §6 originally describes TraceGuard as an **OTel `SpanProcessor`**.
+PRD §6 originally describes SpanRedact as an **OTel `SpanProcessor`**.
 Pre-implementation research shows this is not viable for the current
 OpenTelemetry Python SDK path: `SpanProcessor.on_end()` receives a
 `ReadableSpan`, and the OTel specification states that "even if the passed
@@ -21,7 +21,7 @@ modifying it is not allowed."
   still mutable, but `OnEnding` is currently in **Development** status and
   is not a stable foundation for v0.1.
 
-**Revised approach**: TraceGuard v0.1 implements redaction as a
+**Revised approach**: SpanRedact v0.1 implements redaction as a
 **`SpanExporter` wrapper**. It wraps the user's OTLP exporter, intercepts
 `export(spans)`, builds sanitized span payloads (or sanitized
 `ReadableSpan`-compatible snapshots) before forwarding only the redacted
@@ -30,7 +30,7 @@ the safest implementation path — whether sanitized snapshots can be
 constructed safely, or whether redaction should happen during OTLP
 serialization instead.
 
-The user-facing API (`from traceguard import init`) is unchanged. PRD §6
+The user-facing API (`from spanredact import init`) is unchanged. PRD §6
 diagrams and prose will be updated after the Week 2 spike.
 
 **Second correction**: prompt/completion content should be treated as known
@@ -64,9 +64,9 @@ recommendation.**
 | 1 | Jun 1 – Jun 7 | Onboarding + Hello World | docker-compose Jaeger + hello_anthropic.py emitting gen_ai spans |
 | 2 | Jun 8 – Jun 14 | Architecture spike + project scaffolding | DECISIONS.md ADR; `pip install -e .` works; redaction spike demo |
 | 3 | Jun 15 – Jun 21 | Core PII redaction (regex patterns + Exporter wrapper) | 15+ passing tests; planted PII redacted end-to-end in Jaeger |
-| 4 | Jun 22 – Jun 28 | Policy modes + `init()` API | `TRACEGUARD_POLICY=strict\|balanced\|debug` works; **v0.1-alpha milestone** |
-| 5 | Jun 29 – Jul 5 | `traceguard diff` CLI | `traceguard diff <trace_id>` shows before/after via Jaeger HTTP API |
-| 6 | Jul 6 – Jul 12 | Audit metadata + `traceguard report` | Per-span `traceguard.redaction.*` attrs; aggregated report subcommand |
+| 4 | Jun 22 – Jun 28 | Policy modes + `init()` API | `SPANREDACT_POLICY=strict\|balanced\|debug` works; **v0.1-alpha milestone** |
+| 5 | Jun 29 – Jul 5 | `spanredact diff` CLI | `spanredact diff <trace_id>` shows before/after via Jaeger HTTP API |
+| 6 | Jul 6 – Jul 12 | Audit metadata + `spanredact report` | Per-span `spanredact.redaction.*` attrs; aggregated report subcommand |
 | 7 | Jul 13 – Jul 19 | Self-validation benchmark + polish | Validation table in README with concrete recall/precision numbers |
 | 8 | Jul 20 – Jul 26 | Launch | PyPI 0.1.0 published; README + demo video + blog + Show HN |
 
@@ -120,7 +120,7 @@ appears as `[REDACTED]` in Jaeger.
 ### Thread B — Project scaffolding
 
 1. `pyproject.toml` (PEP 621, hatchling or setuptools backend)
-2. `src/traceguard/__init__.py` with version string
+2. `src/spanredact/__init__.py` with version string
 3. `tests/` directory with one placeholder test
 4. `ruff.toml` (lint + format)
 5. `.github/workflows/ci.yml`: pytest + ruff on Python 3.11 and 3.12
@@ -140,15 +140,15 @@ appears as `[REDACTED]` in Jaeger.
 
 Goal: turn the Week 2 spike into library code.
 
-1. `src/traceguard/redaction/patterns.py`: six default regexes
+1. `src/spanredact/redaction/patterns.py`: six default regexes
    (email, US SSN, US phone, credit card, API key prefixes, JWT). Compile
    at module load. Each pattern has ≥3 positive and ≥3 negative test cases.
-2. `src/traceguard/redaction/exporter.py`: `TraceGuardSpanExporter` wrapper
+2. `src/spanredact/redaction/exporter.py`: `SpanRedactExporter` wrapper
    - `__init__(self, wrapped_exporter, patterns)`
    - `export(self, spans)`: redact known PII-prone attributes
      (`gen_ai.input.messages`, `gen_ai.output.messages`, plus legacy keys),
      then delegate to `wrapped_exporter.export()`
-3. `src/traceguard/redaction/audit.py`: track `patterns_matched`,
+3. `src/spanredact/redaction/audit.py`: track `patterns_matched`,
    `redacted_count`
 4. Test coverage: every pattern in isolation + one end-to-end span test
 
@@ -161,21 +161,21 @@ Goal: turn the Week 2 spike into library code.
 
 ## Week 4 (Jun 22 – Jun 28): Policy modes + init API
 
-1. `src/traceguard/policy/modes.py`: three modes (strict / balanced / debug)
+1. `src/spanredact/policy/modes.py`: three modes (strict / balanced / debug)
    as an enum + per-mode policy table
-2. `src/traceguard/policy/engine.py`: for each attribute, decide drop /
+2. `src/spanredact/policy/engine.py`: for each attribute, decide drop /
    redact / passthrough based on policy
-3. `src/traceguard/init.py`: `init(policy="balanced")` entry point
+3. `src/spanredact/init.py`: `init(policy="balanced")` entry point
    - Calls `Traceloop.init()` internally
-   - Registers the TraceGuard exporter on the tracer provider
-   - Reads `TRACEGUARD_POLICY` env var
-4. `src/traceguard/attach.py`: escape hatch for users who already initialized
+   - Registers the SpanRedact exporter on the tracer provider
+   - Reads `SPANREDACT_POLICY` env var
+4. `src/spanredact/attach.py`: escape hatch for users who already initialized
    OpenLLMetry themselves
 5. Integration tests covering all three modes
 
 **Definition of Done**:
 - [ ] All three policy modes are visually distinguishable in Jaeger
-- [ ] `TRACEGUARD_POLICY=strict python examples/hello_anthropic.py` works
+- [ ] `SPANREDACT_POLICY=strict python examples/hello_anthropic.py` works
 - [ ] **🚀 v0.1-alpha milestone**: project is technically launchable from
       this point forward
 
@@ -183,9 +183,9 @@ Goal: turn the Week 2 spike into library code.
 
 ## Week 5 (Jun 29 – Jul 5): Diff CLI v0
 
-1. `src/traceguard/cli/main.py`: a `click` application with subcommands
+1. `src/spanredact/cli/main.py`: a `click` application with subcommands
    (`diff`, `report`, `validate`)
-2. `src/traceguard/cli/diff.py`: `traceguard diff <trace_id>`
+2. `src/spanredact/cli/diff.py`: `spanredact diff <trace_id>`
    - Queries the Jaeger HTTP API at
      `http://localhost:16686/api/traces/<id>`
    - Shows before/after attributes per span
@@ -193,22 +193,22 @@ Goal: turn the Week 2 spike into library code.
 3. Handle errors: missing trace, Jaeger unreachable, malformed ID
 
 **Definition of Done**:
-- [ ] `traceguard diff <real_id>` produces readable diff output
+- [ ] `spanredact diff <real_id>` produces readable diff output
 - [ ] ≥ 5 CLI tests (including error cases)
 
 ---
 
 ## Week 6 (Jul 6 – Jul 12): Audit metadata + report subcommand
 
-1. Exporter writes `traceguard.redaction.applied=true`,
-   `traceguard.redaction.policy`, and
-   `traceguard.redaction.patterns_matched` on every modified span
-2. `traceguard report --since=1h`: aggregated stats by policy and pattern
+1. Exporter writes `spanredact.redaction.applied=true`,
+   `spanredact.redaction.policy`, and
+   `spanredact.redaction.patterns_matched` on every modified span
+2. `spanredact report --since=1h`: aggregated stats by policy and pattern
 3. `docs/AUDIT.md`: how compliance teams use these attributes for queries
 
 **Definition of Done**:
-- [ ] Jaeger UI can filter spans by `traceguard.redaction.applied`
-- [ ] `traceguard report` outputs ≥ 3 aggregated columns
+- [ ] Jaeger UI can filter spans by `spanredact.redaction.applied`
+- [ ] `spanredact report` outputs ≥ 3 aggregated columns
 
 ---
 
@@ -239,14 +239,14 @@ Goal: deliver on PRD §3.1 G4.
 |-----|------|
 | Mon | README final pass (quickstart, architecture diagram, validation table, comparison vs OpenLLMetry) |
 | Tue | Record 5-7 minute demo video (screen recording + subtitles) |
-| Wed | Draft launch blog post "Why I built TraceGuard" |
-| Thu | TestPyPI dry-run → publish `traceguard==0.1.0` to PyPI |
+| Wed | Draft launch blog post "Why I built SpanRedact" |
+| Thu | TestPyPI dry-run → publish `spanredact==0.1.0` to PyPI |
 | Fri | Prepare launch posts: Show HN, Twitter thread, Slack messages (Traceloop, CNCF #opentelemetry-genai-wg) |
 | Sat | **🚀 Launch day** — Show HN + Twitter + Slack |
 | Sun | Monitor HN comments, GitHub issues, Twitter replies — respond within 48 hours |
 
 **Launch Definition of Done** (against PRD §9 metrics):
-- [ ] `pip install traceguard` works from PyPI
+- [ ] `pip install spanredact` works from PyPI
 - [ ] README renders fully on GitHub, includes demo gif
 - [ ] Show HN post is live (front page not required, posting is)
 
@@ -279,11 +279,11 @@ Every Sunday, 30 minutes:
 
 Run this checklist on Jul 24 before posting:
 
-1. `pip install traceguard` from PyPI succeeds
+1. `pip install spanredact` from PyPI succeeds
 2. Following only the README quickstart, a fresh machine sees a redacted
    trace in Jaeger within 5 minutes
-3. `traceguard diff <trace_id>` returns a readable diff
-4. `traceguard report --since=1h` produces a sane aggregated table
+3. `spanredact diff <trace_id>` returns a readable diff
+4. `spanredact report --since=1h` produces a sane aggregated table
 5. Switching between the three policy modes is visibly different in Jaeger
 6. README benchmark numbers are reproducible by re-running
    `benchmark/run.py`

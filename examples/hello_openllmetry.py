@@ -10,7 +10,7 @@ Prerequisites:
     1. .env contains a real ANTHROPIC_API_KEY (gitignored).
     2. Jaeger running: docker compose -f examples/docker-compose.yml up -d
     3. Run: uv run --python .venv-spike python examples/hello_openllmetry.py
-    4. Inspect: http://localhost:16686  (service: "traceguard-openllmetry-demo")
+    4. Inspect: http://localhost:16686  (service: "spanredact-openllmetry-demo")
 """
 
 import os
@@ -38,7 +38,7 @@ from traceloop.sdk import Traceloop
 # bypass Traceloop's hosted backend entirely (so the default api_endpoint is
 # never actually used). disable_batch=True flushes each span immediately.
 Traceloop.init(
-    app_name="traceguard-openllmetry-demo",
+    app_name="spanredact-openllmetry-demo",
     exporter=OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True),
     disable_batch=True,
 )
@@ -67,5 +67,5 @@ response = client.messages.create(
 print("Claude said:", response.content[0].text)
 print()
 print("Span sent to Jaeger. Open http://localhost:16686")
-print("Service: traceguard-openllmetry-demo")
+print("Service: spanredact-openllmetry-demo")
 print("Then we'll inspect WHICH attribute key holds the prompt/completion.")

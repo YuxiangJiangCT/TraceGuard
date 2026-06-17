@@ -33,6 +33,6 @@ class Policy(str, Enum):
             return cls(value.strip().lower())
         except ValueError as exc:
             raise ValueError(
-                f"Unknown TraceGuard policy {value!r}; expected one of "
+                f"Unknown SpanRedact policy {value!r}; expected one of "
                 f"{[p.value for p in cls]}"
             ) from exc

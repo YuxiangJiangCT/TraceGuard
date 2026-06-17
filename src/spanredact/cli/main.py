@@ -1,12 +1,12 @@
-"""`traceguard` CLI entry point.
+"""`spanredact` CLI entry point.
 
 Subcommands:
-  diff <trace_id>   Inspect a Jaeger trace TraceGuard touched — shows the
+  diff <trace_id>   Inspect a Jaeger trace SpanRedact touched — shows the
                     sanitized GenAI content JSON pretty-printed, the patterns
                     that matched, and the audit attributes. NOT a real
                     before/after diff: the original PII never reaches Jaeger
                     by design, so we render the "what was redacted" picture
-                    instead, sourced from `traceguard.redaction.*` audit
+                    instead, sourced from `spanredact.redaction.*` audit
                     attributes left on the span.
 
   report --service S [--since 1h] [--limit 20]
@@ -35,18 +35,18 @@ CONTENT_KEYS = (
     "gen_ai.completion",
 )
 AUDIT_KEYS = (
-    "traceguard.redaction.applied",
-    "traceguard.redaction.policy",
-    "traceguard.redaction.patterns_matched",
+    "spanredact.redaction.applied",
+    "spanredact.redaction.policy",
+    "spanredact.redaction.patterns_matched",
 )
 
 console = Console()
 
 
 @click.group()
-@click.version_option(package_name="traceguard")
+@click.version_option(package_name="spanredact")
 def main() -> None:
-    """TraceGuard — inspect redacted GenAI traces in Jaeger."""
+    """SpanRedact — inspect redacted GenAI traces in Jaeger."""
 
 
 # ---------- diff ----------------------------------------------------------
@@ -67,7 +67,7 @@ def cmd_diff(trace_id: str, jaeger: str, fmt: str) -> None:
 
     Renders, per span: name, the parsed JSON of `gen_ai.input/output.messages`
     (so the [REDACTED] markers are visible inside the messages structure), the
-    matched pattern names, and the TraceGuard policy that was applied.
+    matched pattern names, and the SpanRedact policy that was applied.
     """
     try:
         spans = fetch_trace(trace_id, base=jaeger)
@@ -118,11 +118,11 @@ def cmd_report(service: str, limit: int, jaeger: str, fmt: str) -> None:
         for sp in tr.get("spans", []):
             total_spans += 1
             tags = tags_to_dict(sp)
-            if tags.get("traceguard.redaction.applied") is True:
+            if tags.get("spanredact.redaction.applied") is True:
                 redacted_spans += 1
-                policy = str(tags.get("traceguard.redaction.policy") or "?")
+                policy = str(tags.get("spanredact.redaction.policy") or "?")
                 policy_counter[policy] += 1
-                matched = str(tags.get("traceguard.redaction.patterns_matched") or "")
+                matched = str(tags.get("spanredact.redaction.patterns_matched") or "")
                 for name in filter(None, matched.split(",")):
                     pattern_counter[name] += 1
 
@@ -139,7 +139,7 @@ def cmd_report(service: str, limit: int, jaeger: str, fmt: str) -> None:
         console.print_json(data=report)
         return
 
-    console.rule(f"[bold]TraceGuard report — service={service}[/bold]")
+    console.rule(f"[bold]SpanRedact report — service={service}[/bold]")
     console.print(
         f"traces examined: {report['traces_examined']}    "
         f"spans: {report['total_spans']}    "
@@ -169,9 +169,9 @@ def _summarize_span(span: dict) -> dict:
     out: dict = {
         "span": span.get("operationName"),
         "span_id": span.get("spanID"),
-        "redacted": tags.get("traceguard.redaction.applied") is True,
-        "policy": tags.get("traceguard.redaction.policy"),
-        "patterns_matched": _split_csv(tags.get("traceguard.redaction.patterns_matched")),
+        "redacted": tags.get("spanredact.redaction.applied") is True,
+        "policy": tags.get("spanredact.redaction.policy"),
+        "patterns_matched": _split_csv(tags.get("spanredact.redaction.patterns_matched")),
         "content": {},
         "metadata": {},
     }
@@ -182,7 +182,7 @@ def _summarize_span(span: dict) -> dict:
         if (
             k.startswith("gen_ai.")
             and k not in CONTENT_KEYS
-        ) or k.startswith("traceguard."):
+        ) or k.startswith("spanredact."):
             out["metadata"][k] = v
     return out
 
@@ -206,7 +206,7 @@ def _render_summary(s: dict) -> None:
     if s["metadata"]:
         console.print("[bold]metadata[/bold]")
         for k, v in s["metadata"].items():
-            if k.startswith("traceguard."):
+            if k.startswith("spanredact."):
                 continue  # already shown above
             console.print(f"  {k} = {v}")
 

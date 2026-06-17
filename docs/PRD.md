@@ -1,6 +1,6 @@
-# TraceGuard — Project Requirements & Technical Design Doc
+# SpanRedact — Project Requirements & Technical Design Doc
 
-**TraceGuard: A Privacy-First Layer for OpenTelemetry-Based AI Agent Traces**
+**SpanRedact: A Privacy-First Layer for OpenTelemetry-Based AI Agent Traces**
 
 > Status: **Draft v0.2** (revised after 3-round AI cross-review)
 > Created: 2026-05-24
@@ -27,7 +27,7 @@ Three intended uses:
 
 ## 1. Executive Summary
 
-**TraceGuard** is a **privacy-first observability layer** that sits on top of
+**SpanRedact** is a **privacy-first observability layer** that sits on top of
 [OpenLLMetry](https://github.com/traceloop/openllmetry) (a leading OSS
 GenAI instrumentation toolkit, 7.1k stars, YC-backed). It does **not**
 re-implement instrumentation — instead, it ships:
@@ -40,26 +40,26 @@ re-implement instrumentation — instead, it ships:
 4. **Minimal self-validation benchmark** (v0.1) → cross-framework benchmark
    (v0.2)
 
-**Why TraceGuard, not "another OpenLLMetry"**: OpenLLMetry has 7.1k stars,
+**Why SpanRedact, not "another OpenLLMetry"**: OpenLLMetry has 7.1k stars,
 40+ instrumentations, 257 releases, and contributed its semantic conventions
 to upstream OpenTelemetry. Competing head-on as a "vendor-neutral
 instrumentation toolkit" is not viable in 8 weeks solo. But **OpenLLMetry's
 default behavior captures full prompt/completion content in spans** — which
 is exactly what regulated industries (fintech, healthtech, legal-tech)
-**cannot ship to production**. TraceGuard fills this specific gap.
+**cannot ship to production**. SpanRedact fills this specific gap.
 
 **Strategic positioning** (after Round-3 review correction):
 - OpenLLMetry is one of the most mature OTel-based GenAI instrumentation
   projects; its semantic convention work has been incorporated into the
   official OpenTelemetry GenAI semconv (currently at v1.41.0, Status:
   Development)
-- TraceGuard treats OpenLLMetry as a dependency and adds the
+- SpanRedact treats OpenLLMetry as a dependency and adds the
   privacy/policy/audit layer that production deployments in regulated
   industries need
 
 **Target outcomes (8 weeks)**:
 - v0.1 launched on PyPI under Apache 2.0
-- Live demo: OpenLLMetry + TraceGuard + Jaeger working with Anthropic
+- Live demo: OpenLLMetry + SpanRedact + Jaeger working with Anthropic
 - README with redaction effectiveness validation
 - 1+ PR proposed (or merged) to upstream OpenLLMetry (e.g., responding to
   open issues such as A2A propagation #3683 or cost metrics #1042)
@@ -147,10 +147,10 @@ turn on in production for regulated workloads**.
 - `balanced`: redacted content (default for production)
 - `debug`: full content, no redaction (default for local dev, never
   recommended for prod)
-- Switch via env var: `TRACEGUARD_POLICY=balanced`
+- Switch via env var: `SPANREDACT_POLICY=balanced`
 
 **G3 — Audit visibility (diff utility)**
-- CLI: `traceguard diff <trace_id>` shows before/after redaction for a
+- CLI: `spanredact diff <trace_id>` shows before/after redaction for a
   specific trace
 - Useful for: validating redaction effectiveness, debugging "why is this
   field missing", compliance audits
@@ -164,10 +164,10 @@ turn on in production for regulated workloads**.
 - This is NOT cross-framework benchmark; that's v0.2
 
 **G5 — Drop-in replacement for OpenLLMetry usage**
-- User changes one import: `from traceguard import init` (instead of
+- User changes one import: `from spanredact import init` (instead of
   `from traceloop.sdk import Traceloop`)
 - All other application code unchanged
-- Behind the scenes: TraceGuard initializes OpenLLMetry + installs the
+- Behind the scenes: SpanRedact initializes OpenLLMetry + installs the
   redaction span processor
 
 **G6 — Standards compliance**
@@ -187,7 +187,7 @@ turn on in production for regulated workloads**.
 - 100% local Python library + your existing OTel backend
 
 **NG3 — Not cross-framework benchmark in v0.1**
-- v0.1 only does self-validation of TraceGuard's redaction
+- v0.1 only does self-validation of SpanRedact's redaction
 - Cross-framework comparison (OpenLLMetry vs OpenInference vs LangSmith
   native) is v0.2 work
 
@@ -226,7 +226,7 @@ more cool thing", ask: does it strengthen one of G1-G6? If no, defer.
   team flagged content capture as a blocker. They tried `TRACELOOP_TRACE_CONTENT=false`
   but lost too much debug value. They started looking for "redaction
   middleware for OpenLLMetry" — found nothing dominant in OSS.
-- **What they want from TraceGuard**:
+- **What they want from SpanRedact**:
   - Drop-in install: change one import
   - Audit ability: prove to compliance that PII is being redacted
   - Their existing OpenLLMetry knowledge transfers
@@ -240,7 +240,7 @@ more cool thing", ask: does it strengthen one of G1-G6? If no, defer.
   customer success calls reveal Slack screenshots of their team's traces
   contain customer emails / API keys. They don't have time to build
   redaction themselves.
-- **What they want from TraceGuard**:
+- **What they want from SpanRedact**:
   - Quick install, sensible defaults
   - Low/zero overhead so it doesn't break their startup-quality codebase
   - Doesn't require buying yet another SaaS
@@ -250,9 +250,9 @@ more cool thing", ask: does it strengthen one of G1-G6? If no, defer.
 - **Title**: Maintainer of an agent framework or related OSS project
 - **Pain**: They want to recommend OpenLLMetry to their users but worry
   about the PII default behavior
-- **What they want from TraceGuard**:
+- **What they want from SpanRedact**:
   - A reference for how a privacy layer should look
-  - Ability to recommend "use OpenLLMetry + TraceGuard together"
+  - Ability to recommend "use OpenLLMetry + SpanRedact together"
   - Documentation that links the two
 
 ### 4.4 Anti-personas (we don't design for)
@@ -269,7 +269,7 @@ more cool thing", ask: does it strengthen one of G1-G6? If no, defer.
 
 ### 5.1 Direct + Adjacent competitors
 
-| Project | Approach | Stars (May 2026) | Relation to TraceGuard |
+| Project | Approach | Stars (May 2026) | Relation to SpanRedact |
 |---------|---------|-----------------|----------------------|
 | **OpenLLMetry (Traceloop)** | OSS, OTel-based, ~40 instrumentations | **7.1k** | **Dependency**, not competitor. We build on top. |
 | **OpenInference (Arize)** | OSS, multi-language OTel instrumentation, has per-field masking | (~3k+ est) | Adjacent. Has some redaction but no policy modes or audit CLI. |
@@ -289,7 +289,7 @@ YC-backed (Traceloop). Active maintenance. Their semantic convention work
 has been incorporated into the official OpenTelemetry GenAI semconv (now at
 v1.41.0).
 
-**TraceGuard's bet**: There's a real gap between "OpenLLMetry's binary
+**SpanRedact's bet**: There's a real gap between "OpenLLMetry's binary
 content capture" and "what regulated industry teams actually need." This gap
 shows up in OpenLLMetry's own GitHub issues (e.g., users asking for finer
 control). The gap is real, narrow, and underserved.
@@ -305,7 +305,7 @@ control). The gap is real, narrow, and underserved.
    CLI. The niche is open.
 
 3. **Drop-in install lowers adoption friction**. Change one import; if you
-   already have OpenLLMetry, you can try TraceGuard in 5 minutes.
+   already have OpenLLMetry, you can try SpanRedact in 5 minutes.
 
 4. **Pure Apache 2.0, no telemetry, no cloud account**. Some teams' legal
    approval cycles are faster for tools that have zero external dependencies.
@@ -313,30 +313,30 @@ control). The gap is real, narrow, and underserved.
 ### 5.3 What if OpenLLMetry adds first-class redaction
 
 **Scenario**: Traceloop ships configurable redaction in OpenLLMetry, making
-TraceGuard redundant.
+SpanRedact redundant.
 
 **Response**:
-- If their implementation is good → **deprecate TraceGuard, redirect users
+- If their implementation is good → **deprecate SpanRedact, redirect users
   to OpenLLMetry**. No ego protection.
-- The existence of TraceGuard may have prompted Traceloop to act. That's
+- The existence of SpanRedact may have prompted Traceloop to act. That's
   a community contribution.
 
 This is the correct mindset for infrastructure-tier OSS work.
 
-### 5.4 Why TraceGuard's niche is defensible (for 6-18 months)
+### 5.4 Why SpanRedact's niche is defensible (for 6-18 months)
 
 Three reasons:
 
 1. **Regulated industry has slow adoption cycles** — even if Traceloop ships
-   redaction, regulated teams take 6-12 months to evaluate + deploy. TraceGuard
+   redaction, regulated teams take 6-12 months to evaluate + deploy. SpanRedact
    can be the bridge tool in the meantime.
 
-2. **TraceGuard can be more opinionated** — Traceloop sells to all users
-   including dev/test. They can't make `strict` the default. TraceGuard
+2. **SpanRedact can be more opinionated** — Traceloop sells to all users
+   including dev/test. They can't make `strict` the default. SpanRedact
    makes `balanced` the default explicitly because it's targeted at
    regulated use cases.
 
-3. **Audit CLI is a category of its own** — `traceguard diff` isn't really
+3. **Audit CLI is a category of its own** — `spanredact diff` isn't really
    about redaction config, it's about giving compliance teams a tool. This
    feature wouldn't naturally fit inside OpenLLMetry; it's a separate
    workflow.
@@ -351,7 +351,7 @@ Three reasons:
 ┌─────────────────────────────────────────────────────────────────┐
 │  User's Application Code                                          │
 │                                                                    │
-│   from traceguard import init                                      │
+│   from spanredact import init                                      │
 │   init(policy="balanced")  # ← Only change from OpenLLMetry usage │
 │                                                                    │
 │   # Rest of code is standard OpenLLMetry / OTel:                  │
@@ -362,7 +362,7 @@ Three reasons:
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  TraceGuard (this project)                                        │
+│  SpanRedact (this project)                                        │
 │                                                                    │
 │  init() does:                                                      │
 │   1. Call OpenLLMetry's Traceloop.init()                           │
@@ -407,19 +407,19 @@ Three reasons:
                 └───────────────────────┘
 ```
 
-**Key design choice**: TraceGuard is an **OTel SpanProcessor**, not a fork
+**Key design choice**: SpanRedact is an **OTel SpanProcessor**, not a fork
 of OpenLLMetry. SpanProcessor is the standard OTel extension point. This
 means:
 - Zero changes to OpenLLMetry code
-- TraceGuard upgrades independently of OpenLLMetry releases
-- If user already initialized OpenLLMetry, they can add TraceGuard
+- SpanRedact upgrades independently of OpenLLMetry releases
+- If user already initialized OpenLLMetry, they can add SpanRedact
   separately (via API, not import)
 
 ### 6.2 Component breakdown
 
 **Code structure**:
 ```
-src/traceguard/
+src/spanredact/
 ├── __init__.py
 ├── init.py               # init() entry point
 ├── policy/
@@ -445,19 +445,19 @@ src/traceguard/
 
 **Zero-config (most common)**:
 ```python
-from traceguard import init
+from spanredact import init
 init()  # policy=balanced by default
 ```
 
 **Explicit policy**:
 ```python
-from traceguard import init
+from spanredact import init
 init(policy="strict")
 ```
 
 **Add custom patterns**:
 ```python
-from traceguard import init, add_pattern
+from spanredact import init, add_pattern
 init()
 add_pattern("internal_id", r"INT-\d{6}")
 ```
@@ -468,16 +468,16 @@ add_pattern("internal_id", r"INT-\d{6}")
 from traceloop.sdk import Traceloop
 Traceloop.init()
 
-# Add TraceGuard:
-from traceguard import attach
+# Add SpanRedact:
+from spanredact import attach
 attach(policy="balanced")
 ```
 
 **Environment variables**:
 ```bash
-TRACEGUARD_POLICY=balanced              # strict | balanced | debug
-TRACEGUARD_PATTERNS=/path/to/patterns.json
-TRACEGUARD_AUDIT_LOG=/var/log/traceguard.log  # optional, what was redacted
+SPANREDACT_POLICY=balanced              # strict | balanced | debug
+SPANREDACT_PATTERNS=/path/to/patterns.json
+SPANREDACT_AUDIT_LOG=/var/log/spanredact.log  # optional, what was redacted
 ```
 
 ### 6.4 Span hierarchy (delegated to OpenLLMetry)
@@ -490,14 +490,14 @@ Typical span hierarchy (from OpenLLMetry):
 [gen_ai.chat (Anthropic)]
   attrs: gen_ai.system=anthropic, gen_ai.request.model=claude-opus-4-7,
          gen_ai.usage.input_tokens=150
-  events: gen_ai.content.prompt=[REDACTED by TraceGuard:balanced]
-          gen_ai.content.completion=[REDACTED by TraceGuard:balanced]
+  events: gen_ai.content.prompt=[REDACTED by SpanRedact:balanced]
+          gen_ai.content.completion=[REDACTED by SpanRedact:balanced]
 ```
 
-Note: TraceGuard adds an audit attribute to redacted spans:
-- `traceguard.redaction.applied=true`
-- `traceguard.redaction.policy=balanced`
-- `traceguard.redaction.patterns_matched=[email, phone]`
+Note: SpanRedact adds an audit attribute to redacted spans:
+- `spanredact.redaction.applied=true`
+- `spanredact.redaction.policy=balanced`
+- `spanredact.redaction.patterns_matched=[email, phone]`
 
 This lets compliance teams query "show me all spans where redaction was
 applied" or "show me all spans containing matched email patterns".
@@ -538,11 +538,11 @@ Not coding the project yet. Focus is **fundamentals**:
 - Week 2: Deeper dive
   - Read OTel SpanProcessor docs + examples
   - Read OTel GenAI semconv (now you'll understand 70%)
-  - Sketch TraceGuard architecture on paper
+  - Sketch SpanRedact architecture on paper
   - Set up project skeleton (pyproject.toml, ruff, pytest, GH Actions)
 
 **Deliverable end of Week 2**: working hello world + project skeleton + 1-2
-page architecture doc. No TraceGuard-specific code yet.
+page architecture doc. No SpanRedact-specific code yet.
 
 **Weeks 3-4 (June 15-28): Core redaction**
 
@@ -554,20 +554,20 @@ page architecture doc. No TraceGuard-specific code yet.
 - Week 4: Policy modes
   - Implement strict / balanced / debug
   - Environment variable + programmatic API
-  - Integration with `traceguard.init()`
+  - Integration with `spanredact.init()`
 
 **Deliverable end of Week 4**: working `pip install -e . && python examples/anthropic_redaction.py`
 shows redacted traces in Jaeger.
 
 **Weeks 5-6 (June 29 – July 12): Diff CLI + audit**
 
-- Week 5: `traceguard diff` CLI
+- Week 5: `spanredact diff` CLI
   - Query OTLP backend (start with Jaeger HTTP API)
   - Show before/after for a specific trace
   - Click-based, with `--format=table|json` options
 - Week 6: Audit metadata
-  - Add `traceguard.redaction.*` attributes to redacted spans
-  - CLI command `traceguard report --since=1h` shows aggregated redaction stats
+  - Add `spanredact.redaction.*` attributes to redacted spans
+  - CLI command `spanredact report --since=1h` shows aggregated redaction stats
 
 **Deliverable end of Week 6**: working CLI demonstrating audit capabilities.
 
@@ -585,11 +585,11 @@ concrete numbers.
 
 - README.md (5-min quickstart, architecture, validation results,
   comparison-to-OpenLLMetry section)
-- Blog post: **"Why I built TraceGuard: making OpenLLMetry safe for
+- Blog post: **"Why I built SpanRedact: making OpenLLMetry safe for
   regulated production"**
 - 5-7 min demo video
 - Push to GitHub (Apache 2.0)
-- Publish to PyPI as `traceguard==0.1.0`
+- Publish to PyPI as `spanredact==0.1.0`
 - Launch posts: HN (Show HN), r/MachineLearning, Twitter,
   CNCF Slack #opentelemetry-genai-wg, Traceloop Slack
 
@@ -600,7 +600,7 @@ Backlog (prioritize after v0.1 community feedback):
 - Cross-framework benchmark (OpenLLMetry vs OpenInference vs LangSmith
   native): 5-8 tasks × 3 frameworks
 - Microsoft Presidio integration (optional ML-based PII)
-- Trace quality validator (`traceguard validate <trace_id>`)
+- Trace quality validator (`spanredact validate <trace_id>`)
 - AWS Bedrock support (if user-requested)
 - First PR submitted to OpenLLMetry (likely responding to #3683 or similar
   open issue)
@@ -628,7 +628,7 @@ Possible directions:
 
 | Risk | Probability | Impact | Mitigation |
 |------|-----------|--------|-----------|
-| OpenLLMetry ships first-class redaction, makes TraceGuard redundant | Medium-High | High | Frame as feature: "TraceGuard prototype influenced upstream". |
+| OpenLLMetry ships first-class redaction, makes SpanRedact redundant | Medium-High | High | Frame as feature: "SpanRedact prototype influenced upstream". |
 | OpenLLMetry breaking API change between v0.1 and v0.2 | Medium | Medium | Pin compatible OpenLLMetry version range. CI runs against latest + pinned. |
 | PII pattern false-positive causes user complaint | Medium | Medium | Conservative defaults. Allowlist mechanism. Clear docs on tuning patterns. |
 | PII pattern false-negative (leak) reported as security issue | Low | Very High | Conservative defaults, explicit "this is regex, not ML" caveat in docs. Beta testers told "evaluate before production". `SECURITY.md` with responsible disclosure path. |
@@ -679,7 +679,7 @@ Decisions to make as the project develops. Track here.
 
 | ID | Question | Status | Notes |
 |----|---------|--------|-------|
-| Q1 | Repo name: `traceguard` confirmed | DECIDED | PyPI verified available 2026-05-26. |
+| Q1 | Repo name: `spanredact` confirmed | DECIDED | PyPI verified available 2026-05-26. |
 | Q2 | License: Apache 2.0 confirmed | DECIDED | Same as OpenLLMetry + OTel ecosystem. Never change. |
 | Q3 | Use Microsoft Presidio in v0.1? | DECIDED | No. Regex in v0.1, Presidio optional in v0.2. |
 | Q4 | Should v0.1 support OpenAI in addition to Anthropic? | OPEN | Realistically yes — OpenLLMetry handles both, redaction is content-agnostic. Decide Week 3. |
@@ -687,7 +687,7 @@ Decisions to make as the project develops. Track here.
 | Q6 | Streaming response handling | OPEN | Investigate Week 2 during OpenLLMetry source code reading. May force SpanProcessor → OTLP exporter pipeline change. |
 | Q7 | Audit log destination | OPEN | v0.1: optional file. v0.2: maybe ship to OTel as separate signal stream? |
 | Q8 | Docker compose with Jaeger + example agent for instant demo | OPEN | High-value for adoption. Defer to Week 8 if time. |
-| Q9 | What's TraceGuard's relationship with OpenInference's existing per-field masking? | OPEN | Research Week 1. May want to support OpenInference as alternative dependency, not just OpenLLMetry. |
+| Q9 | What's SpanRedact's relationship with OpenInference's existing per-field masking? | OPEN | Research Week 1. May want to support OpenInference as alternative dependency, not just OpenLLMetry. |
 | Q10 | Should we instrument tool call arguments separately from prompt content? | OPEN | Tool args often contain less PII but more sensitive data (API endpoints, IDs). May want different default policy. |
 
 ---
@@ -717,7 +717,7 @@ Decisions to make as the project develops. Track here.
 | gen_ai.* | Namespace for OTel GenAI-specific attributes |
 | PII | Personally Identifiable Information — emails, SSN, etc. |
 | Redaction | Removing or replacing PII before data leaves user's infrastructure |
-| Policy mode | TraceGuard concept — preset of redaction behavior (strict/balanced/debug) |
+| Policy mode | SpanRedact concept — preset of redaction behavior (strict/balanced/debug) |
 | Audit metadata | Span attributes showing what redaction was applied |
 
 ---
@@ -726,13 +726,13 @@ Decisions to make as the project develops. Track here.
 
 | Date | Decision | Rationale |
 |------|---------|-----------|
-| 2026-05-24 | Project pivot: otel-genai → TraceGuard | 3-round AI cross-review revealed otel-genai positioning competed head-on with OpenLLMetry (7.1k stars, mature). TraceGuard builds on top instead. |
+| 2026-05-24 | Project pivot: otel-genai → SpanRedact | 3-round AI cross-review revealed otel-genai positioning competed head-on with OpenLLMetry (7.1k stars, mature). SpanRedact builds on top instead. |
 | 2026-05-24 | Apache 2.0 license | Aligns with OpenLLMetry + OTel ecosystem. Patent grant matters for enterprise users. Never change. |
 | 2026-05-24 | Python only for v0.x | Solo maintainer time constraint. Python is dominant LLM agent language. |
 | 2026-05-24 | Default policy = balanced | Strict loses debug value; debug loses safety. Balanced (redacted content) is the right default for primary persona. |
-| 2026-05-24 | Build as SpanProcessor, not OpenLLMetry fork | Standard OTel extension point. Lets TraceGuard evolve independently of OpenLLMetry releases. |
+| 2026-05-24 | Build as SpanProcessor, not OpenLLMetry fork | Standard OTel extension point. Lets SpanRedact evolve independently of OpenLLMetry releases. |
 | 2026-05-24 | v0.1 ships with self-validation only, not cross-framework benchmark | Cross-framework benchmark is a 1-2 week project on its own. Defer to v0.2. |
-| 2026-05-26 | Name `traceguard` confirmed available on PyPI | curl pypi.org/pypi/traceguard/json → 404 |
+| 2026-05-26 | Name `spanredact` confirmed available on PyPI | curl pypi.org/pypi/spanredact/json → 404 |
 
 ### 12.1 Adversarial review (preempting hostile critique)
 
@@ -740,9 +740,9 @@ Hypothetical hostile reviewer: a Traceloop engineer or LangSmith advocate.
 
 **Critique 1**: "Why doesn't OpenLLMetry just add this as a config flag?"
 
-**Response**: It might. TraceGuard's job is to demonstrate the gap and
+**Response**: It might. SpanRedact's job is to demonstrate the gap and
 provide a working prototype until upstream adopts a similar pattern. If
-upstream adopts, TraceGuard deprecates gracefully.
+upstream adopts, SpanRedact deprecates gracefully.
 
 **Critique 2**: "Regex-based PII detection is unreliable. Why not Presidio
 or LLM-based?"
@@ -762,7 +762,7 @@ escape hatch for the 20%.
 **Critique 4**: "This is just OpenInference's masking with extra steps."
 
 **Response**: OpenInference's masking is a per-field utility within their
-SDK. TraceGuard is a project-level layer: policy modes + audit CLI + diff
+SDK. SpanRedact is a project-level layer: policy modes + audit CLI + diff
 tooling. Different products. We can potentially support OpenInference as
 an alternative dependency (Q9 in open questions).
 
@@ -771,19 +771,19 @@ an alternative dependency (Q9 in open questions).
 If these assumptions break, the project needs to repivot:
 
 1. **"Regulated industry doesn't actually use OpenLLMetry"**: They use
-   Langfuse self-hosted or Phoenix instead. Then TraceGuard becomes a
+   Langfuse self-hosted or Phoenix instead. Then SpanRedact becomes a
    redaction layer for those tools. → Pivot work: ~1 week to add Langfuse
    adapter.
 
-2. **"PII isn't the main blocker; cost / quality is"**: Then TraceGuard
+2. **"PII isn't the main blocker; cost / quality is"**: Then SpanRedact
    becomes cost-attribution + quality-validation layer. → Pivot work: ~2-3
    weeks to switch focus.
 
-3. **"OpenLLMetry adds first-class redaction in v0.6x"**: TraceGuard
+3. **"OpenLLMetry adds first-class redaction in v0.6x"**: SpanRedact
    deprecates gracefully. Portfolio value still preserved through the PRD,
    blog post, and PRs submitted upstream.
 
-4. **"No regulated industry adopters; only solo dev users"**: TraceGuard's
+4. **"No regulated industry adopters; only solo dev users"**: SpanRedact's
    real value isn't PII; it's audit tooling. Pivot toward dev-focused
    "what's actually in my LLM traces" CLI tool.
 

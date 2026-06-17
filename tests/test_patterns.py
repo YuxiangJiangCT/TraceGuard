@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from traceguard.redaction.patterns import DEFAULT_PATTERNS
-from traceguard.redaction.redactor import REDACTED, redact_text
+from spanredact.redaction.patterns import DEFAULT_PATTERNS
+from spanredact.redaction.redactor import REDACTED, redact_text
 
 POSITIVES = {
     "email": ["a@b.com", "ryan.jiang@cornell.edu", "x_y+z@sub.domain.io"],

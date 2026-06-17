@@ -1,9 +1,9 @@
 """Public init/attach entry points.
 
-    from traceguard import init
+    from spanredact import init
     init(policy="balanced")
 
-init() builds a TracerProvider whose exporter is TraceGuardSpanExporter wrapping
+init() builds a TracerProvider whose exporter is SpanRedactExporter wrapping
 an OTLP exporter (or a caller-supplied downstream exporter), then registers it
 globally. attach() adds redaction to an existing provider by wrapping a
 downstream exporter the caller already has.
@@ -12,10 +12,10 @@ WARNING: init() registers a global TracerProvider via
 trace.set_tracer_provider(). OpenLLMetry's Traceloop.init() registers its own
 global provider too, and only one global provider can win — combining them
 means one is silently ignored (which one depends on init order), so redaction
-may not run. Do NOT use traceguard.init() together with Traceloop.init(). If
+may not run. Do NOT use spanredact.init() together with Traceloop.init(). If
 you use OpenLLMetry, prefer the documented path: wrap your exporter with
-TraceGuardSpanExporter and pass it to Traceloop.init(exporter=...).
-traceguard.init() / attach() are for plain-OTel setups that do NOT use Traceloop.
+SpanRedactExporter and pass it to Traceloop.init(exporter=...).
+spanredact.init() / attach() are for plain-OTel setups that do NOT use Traceloop.
 """
 
 from __future__ import annotations
@@ -27,14 +27,14 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanExporter
 
 from .policy.modes import Policy
-from .redaction.exporter import TraceGuardSpanExporter
+from .redaction.exporter import SpanRedactExporter
 
 
 def _resolve_policy(policy: str | Policy | None) -> Policy:
     if isinstance(policy, Policy):
         return policy
     # explicit arg wins; else env var; else balanced.
-    return Policy.from_str(policy if policy is not None else os.getenv("TRACEGUARD_POLICY"))
+    return Policy.from_str(policy if policy is not None else os.getenv("SPANREDACT_POLICY"))
 
 
 def _default_otlp_exporter() -> SpanExporter:
@@ -51,10 +51,10 @@ def init(
     *,
     set_global: bool = True,
 ) -> TracerProvider:
-    """Initialize a TracerProvider with TraceGuard redaction.
+    """Initialize a TracerProvider with SpanRedact redaction.
 
     Args:
-        policy: "strict" | "balanced" | "debug". Defaults to env TRACEGUARD_POLICY
+        policy: "strict" | "balanced" | "debug". Defaults to env SPANREDACT_POLICY
             or "balanced".
         exporter: downstream SpanExporter to wrap. Defaults to an OTLP gRPC
             exporter at OTEL_EXPORTER_OTLP_ENDPOINT (or localhost:4317).
@@ -62,7 +62,7 @@ def init(
     """
     resolved = _resolve_policy(policy)
     downstream = exporter or _default_otlp_exporter()
-    guarded = TraceGuardSpanExporter(downstream, policy=resolved)
+    guarded = SpanRedactExporter(downstream, policy=resolved)
 
     provider = TracerProvider()
     provider.add_span_processor(BatchSpanProcessor(guarded))
@@ -76,12 +76,12 @@ def attach(
     exporter: SpanExporter,
     policy: str | Policy | None = None,
 ) -> TracerProvider:
-    """Add TraceGuard redaction to an EXISTING provider by wrapping `exporter`.
+    """Add SpanRedact redaction to an EXISTING provider by wrapping `exporter`.
 
     For users who already set up OpenLLMetry/OTel themselves and just want the
     redaction layer in front of their exporter.
     """
     resolved = _resolve_policy(policy)
-    guarded = TraceGuardSpanExporter(exporter, policy=resolved)
+    guarded = SpanRedactExporter(exporter, policy=resolved)
     provider.add_span_processor(BatchSpanProcessor(guarded))
     return provider

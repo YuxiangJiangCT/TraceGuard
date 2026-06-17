@@ -1,14 +1,14 @@
-# Contributing to TraceGuard
+# Contributing to SpanRedact
 
-Thanks for your interest. TraceGuard is a small, opinionated layer; the
+Thanks for your interest. SpanRedact is a small, opinionated layer; the
 goal is to keep the core narrow and stable, not grow features for their
 own sake.
 
 ## Setup
 
 ```bash
-git clone https://github.com/YuxiangJiangCT/TraceGuard.git
-cd TraceGuard
+git clone https://github.com/YuxiangJiangCT/SpanRedact.git
+cd SpanRedact
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev,examples]"
 pytest -v        # 18 tests, ~0.1s
@@ -19,7 +19,7 @@ ruff check src tests
 
 In order of impact:
 
-1. **Real-world PII pattern misses.** If your team uses TraceGuard and
+1. **Real-world PII pattern misses.** If your team uses SpanRedact and
    something obvious (e.g., IBAN, AWS access key) leaked through, open a
    GitHub issue with a redacted sample so we can extend the default set
    or document the gap. This is feedback we can't generate ourselves.

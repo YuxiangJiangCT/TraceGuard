@@ -1,8 +1,8 @@
-"""Benchmark tasks for TraceGuard v0.1 self-validation.
+"""Benchmark tasks for SpanRedact v0.1 self-validation.
 
-Each task is a prompt (sent to Claude through OpenLLMetry + TraceGuard) plus a
+Each task is a prompt (sent to Claude through OpenLLMetry + SpanRedact) plus a
 ground-truth list of the PII strings planted in it. The runner compares what
-TraceGuard caught vs the ground truth and computes recall / precision /
+SpanRedact caught vs the ground truth and computes recall / precision /
 completeness.
 
 3 tasks intentionally (PRD §3.1 G4 says 5-8; we scope down for v0.1, expand

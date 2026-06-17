@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-If you believe you've found a security issue in TraceGuard — including, but
+If you believe you've found a security issue in SpanRedact — including, but
 not limited to, a way that PII redaction can be bypassed or that the
 exporter can leak content it shouldn't — **please do NOT open a public
 GitHub issue**.
@@ -15,7 +15,7 @@ and we'll exchange one.
 Please include:
 
 - A clear description of the issue and its impact.
-- Minimum versions of `traceguard`, `opentelemetry-sdk`, and (if relevant)
+- Minimum versions of `spanredact`, `opentelemetry-sdk`, and (if relevant)
   `traceloop-sdk` that reproduce it.
 - A minimal reproduction (script or test).
 - Whether the issue is already public anywhere.
@@ -28,10 +28,10 @@ disclosure timing can be discussed case-by-case.
 
 In-scope:
 
-- The `traceguard` package and its examples.
+- The `spanredact` package and its examples.
 - Default PII patterns failing to redact what they document.
 - Audit attributes being inaccurate or missing on changed spans.
-- TraceGuard's `SpanExporter` wrapper accidentally forwarding non-redacted
+- SpanRedact's `SpanExporter` wrapper accidentally forwarding non-redacted
   content downstream.
 
 Out-of-scope (please report to the relevant project instead):
@@ -44,7 +44,7 @@ Out-of-scope (please report to the relevant project instead):
 
 ## Known limitations
 
-- **Regex-based detection is not ML-based.** TraceGuard v0.1 will miss
+- **Regex-based detection is not ML-based.** SpanRedact v0.1 will miss
   exotic PII formats and obfuscated content by design. This is documented
   in [docs/PRD.md](docs/PRD.md) §3.2 NG4 and §8 risk table.
 - **Beta software.** v0.1 should be evaluated against your own data before

@@ -31,7 +31,7 @@ def render(summary: dict) -> str:
         f"**precision {summary['macro_precision']:.2f}**, "
         f"**completeness {summary['macro_completeness']:.2f}** "
         f"(3 tasks, Claude `claude-haiku-4-5-20251001` via OpenLLMetry, "
-        f"TraceGuard policy=balanced)."
+        f"SpanRedact policy=balanced)."
     )
     return "\n".join(rows)
 

@@ -1,4 +1,4 @@
-"""Run the benchmark tasks against a real Claude API and TraceGuard, computing:
+"""Run the benchmark tasks against a real Claude API and SpanRedact, computing:
 
   recall       = caught_planted_pii / total_planted_pii         (per task; macro avg overall)
   precision    = correct_redactions / total_redactions_emitted  (1.0 if no over-redaction)
@@ -29,17 +29,17 @@ from anthropic import Anthropic  # noqa: E402
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter  # noqa: E402
 from traceloop.sdk import Traceloop  # noqa: E402
 
-from traceguard.policy.modes import Policy  # noqa: E402
-from traceguard.redaction.exporter import TraceGuardSpanExporter  # noqa: E402
+from spanredact.policy.modes import Policy  # noqa: E402
+from spanredact.redaction.exporter import SpanRedactExporter  # noqa: E402
 from benchmark.tasks import TASKS, Task  # noqa: E402
 
-SERVICE = "traceguard-benchmark"
+SERVICE = "spanredact-benchmark"
 JAEGER_BASE = "http://localhost:16686"
 MODEL = "claude-haiku-4-5-20251001"
 
 
 def _init_tracing():
-    exporter = TraceGuardSpanExporter(
+    exporter = SpanRedactExporter(
         OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True),
         policy=Policy.BALANCED,
     )
@@ -109,7 +109,7 @@ def _evaluate(task: Task, trace_id: str) -> dict:
     planted = len(task.planted_pii)
     recall = caught / planted if planted else 1.0
 
-    matched_csv = str(tags.get("traceguard.redaction.patterns_matched") or "")
+    matched_csv = str(tags.get("spanredact.redaction.patterns_matched") or "")
     matched = {n for n in matched_csv.split(",") if n}
     expected = set(task.planted_pattern_names)
     over_redactions = matched - expected  # pattern hits we did not plant

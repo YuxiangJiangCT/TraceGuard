@@ -12,11 +12,11 @@ from unittest.mock import patch
 import httpx
 from click.testing import CliRunner
 
-from traceguard.cli import jaeger as jmod
-from traceguard.cli.main import main
+from spanredact.cli import jaeger as jmod
+from spanredact.cli.main import main
 
 # Fixture: one Jaeger span carrying a redacted gen_ai.input.messages payload
-# and the audit attributes TraceGuardSpanExporter writes.
+# and the audit attributes SpanRedactExporter writes.
 _REDACTED_CONTENT = json.dumps(
     [{"role": "user", "parts": [{"type": "text", "content": "hi [REDACTED]"}]}]
 )
@@ -28,9 +28,9 @@ _SPAN = {
         {"key": "gen_ai.input.messages", "type": "string", "value": _REDACTED_CONTENT},
         {"key": "gen_ai.request.model", "type": "string", "value": "claude-haiku-4-5"},
         {"key": "gen_ai.usage.input_tokens", "type": "int64", "value": 27},
-        {"key": "traceguard.redaction.applied", "type": "bool", "value": True},
-        {"key": "traceguard.redaction.policy", "type": "string", "value": "balanced"},
-        {"key": "traceguard.redaction.patterns_matched", "type": "string", "value": "email"},
+        {"key": "spanredact.redaction.applied", "type": "bool", "value": True},
+        {"key": "spanredact.redaction.policy", "type": "string", "value": "balanced"},
+        {"key": "spanredact.redaction.patterns_matched", "type": "string", "value": "email"},
     ],
 }
 

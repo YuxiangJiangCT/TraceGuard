@@ -32,7 +32,7 @@ provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
 trace.set_tracer_provider(provider)
 
 # ── Step 2: get a "pen" (tracer) ────────────────────────────────────────
-tracer = trace.get_tracer("traceguard.hello")
+tracer = trace.get_tracer("spanredact.hello")
 
 # ── Step 3: draw one span ───────────────────────────────────────────────
 # start_as_current_span opens a span; leaving the `with` block ends it,
