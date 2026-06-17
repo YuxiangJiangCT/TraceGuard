@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from traceguard.redaction.patterns import DEFAULT_PATTERNS
 from traceguard.redaction.redactor import REDACTED, redact_text
 
 POSITIVES = {
@@ -51,3 +52,21 @@ def test_api_key_prefixes():
     for sample in ["sk-ant-api03-abcdefghij1234567890XYZ", "ghp_abcdefghij1234567890abcd"]:
         out, _ = redact_text(sample)
         assert REDACTED in out
+
+
+def test_credit_card_requires_valid_luhn():
+    """credit_card redacts only digit runs that pass the Luhn checksum, so a
+    random 13-16 digit string isn't treated as a card. Tested in isolation
+    from us_phone (which would otherwise grab 10 digits of any long run).
+
+    Valid samples: all-zeros is an obvious dummy that still passes (sum 0);
+    4111... and 3782... are the canonical published test-card numbers."""
+    cc = [(name, rx) for name, rx in DEFAULT_PATTERNS if name == "credit_card"]
+    for valid in ["0000000000000000", "4111 1111 1111 1111", "378282246310005"]:
+        out, matched = redact_text(valid, patterns=cc)
+        assert REDACTED in out, f"valid card {valid!r} not redacted"
+        assert "credit_card" in matched
+    for invalid in ["1234567890123456", "1111111111111111", "1234567890123"]:
+        out, matched = redact_text(invalid, patterns=cc)
+        assert out == invalid, f"invalid {invalid!r} wrongly redacted -> {out!r}"
+        assert "credit_card" not in matched

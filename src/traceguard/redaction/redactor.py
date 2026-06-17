@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import re
 
-from .patterns import DEFAULT_PATTERNS
+from .patterns import DEFAULT_PATTERNS, VALIDATORS
 
 REDACTED = "[REDACTED]"
 
@@ -34,9 +34,20 @@ def redact_text(
         patterns = DEFAULT_PATTERNS
     matched: set[str] = set()
     for name, rx in patterns:
-        if rx.search(text):
-            matched.add(name)
-            text = rx.sub(REDACTED, text)
+        validator = VALIDATORS.get(name)
+        if validator is None:
+            if rx.search(text):
+                matched.add(name)
+                text = rx.sub(REDACTED, text)
+        else:
+            # Pattern has a validator: only redact matches that pass it.
+            def _replace(m: re.Match[str], _name: str = name, _ok=validator) -> str:
+                if _ok(m.group(0)):
+                    matched.add(_name)
+                    return REDACTED
+                return m.group(0)
+
+            text = rx.sub(_replace, text)
     return text, matched
 
 

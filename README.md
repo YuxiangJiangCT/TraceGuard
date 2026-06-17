@@ -169,10 +169,11 @@ present in the post-export span content. Reproduce with
 Macro averages: **recall 1.00**, **precision 1.00**, **completeness 1.00**.
 
 These numbers reflect *this small, well-defined task set* — they are NOT a
-guarantee for arbitrary PII formats. The patterns are regex, not ML, and the
-broad numeric ones favor recall over precision: `us_phone` matches any
-10-digit sequence and `credit_card` any 13–16 digits (no Luhn check), so
-unrelated values (order IDs, Unix timestamps, long numeric tokens) can be
+guarantee for arbitrary PII formats. The patterns are regex, not ML.
+`credit_card` matches 13–16 digit runs but only redacts those that pass a
+Luhn checksum, so most random numbers are left alone. `us_phone`, by
+contrast, matches any 10-digit sequence (favoring recall), so unrelated
+values (order IDs, Unix timestamps, long numeric tokens) can still be
 over-redacted. That is the intended privacy-first failure mode — over-redact
 rather than leak — but it means redaction can touch non-PII. See
 [docs/PRD.md](docs/PRD.md) §3.2 NG4 for what TraceGuard does *not* claim to
