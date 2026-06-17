@@ -1,9 +1,11 @@
 """Default PII regex patterns, compiled once at import.
 
 Each pattern is (name, compiled_regex). The name is what we report in audit
-metadata (traceguard.redaction.patterns_matched). Patterns are intentionally
-conservative — better to occasionally miss an exotic format than to over-redact
-useful debugging content. Users can extend this list (Week 4+).
+metadata (traceguard.redaction.patterns_matched). The broad numeric patterns
+(us_phone, credit_card) favor recall over precision — they can over-match
+non-PII such as order IDs or timestamps — which is the intended privacy-first
+failure mode: over-redact rather than leak. Users can extend this list via
+add_pattern().
 """
 
 from __future__ import annotations

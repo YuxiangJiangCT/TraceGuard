@@ -7,6 +7,15 @@ init() builds a TracerProvider whose exporter is TraceGuardSpanExporter wrapping
 an OTLP exporter (or a caller-supplied downstream exporter), then registers it
 globally. attach() adds redaction to an existing provider by wrapping a
 downstream exporter the caller already has.
+
+WARNING: init() registers a global TracerProvider via
+trace.set_tracer_provider(). OpenLLMetry's Traceloop.init() registers its own
+global provider too, and only one global provider can win — combining them
+means one is silently ignored (which one depends on init order), so redaction
+may not run. Do NOT use traceguard.init() together with Traceloop.init(). If
+you use OpenLLMetry, prefer the documented path: wrap your exporter with
+TraceGuardSpanExporter and pass it to Traceloop.init(exporter=...).
+traceguard.init() / attach() are for plain-OTel setups that do NOT use Traceloop.
 """
 
 from __future__ import annotations

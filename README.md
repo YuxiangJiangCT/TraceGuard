@@ -15,8 +15,10 @@ with an audit trail so compliance can verify what was redacted.
 
 > **Status: v0.1 core works locally** — `pip install -e .`, real Claude calls
 > through OpenLLMetry land in Jaeger with planted PII replaced by
-> `[REDACTED]`. Not on PyPI yet; CLI / benchmark / formal launch deferred.
-> See [docs/ROADMAP.md](docs/ROADMAP.md) for the deferred items.
+> `[REDACTED]`. The `traceguard` CLI (`diff` / `report`) and a self-validation
+> benchmark are included; not on PyPI yet, and formal launch (PyPI publish,
+> demo video) is deferred. See [docs/ROADMAP.md](docs/ROADMAP.md) for the
+> remaining deferred items.
 
 ---
 
@@ -39,6 +41,10 @@ with an audit trail so compliance can verify what was redacted.
 - **One-line integration.** Pass `TraceGuardSpanExporter` to
   `Traceloop.init(exporter=...)` — the rest of your OpenLLMetry / OTel setup
   is unchanged.
+- **CLI for inspection.** `traceguard diff <trace_id>` renders the redaction
+  state of one Jaeger trace (parsed content with `[REDACTED]` markers, matched
+  patterns, policy); `traceguard report --service <name>` aggregates audit
+  stats (spans redacted, by policy, by pattern) across recent traces.
 
 ---
 
@@ -163,18 +169,19 @@ present in the post-export span content. Reproduce with
 Macro averages: **recall 1.00**, **precision 1.00**, **completeness 1.00**.
 
 These numbers reflect *this small, well-defined task set* — they are NOT a
-guarantee for arbitrary PII formats. Regex coverage is intentionally
-conservative; see [docs/PRD.md](docs/PRD.md) §3.2 NG4 for what TraceGuard
-does *not* claim to catch. Expand `benchmark/tasks.py` and rerun to
-re-evaluate on your own data.
+guarantee for arbitrary PII formats. The patterns are regex, not ML, and the
+broad numeric ones favor recall over precision: `us_phone` matches any
+10-digit sequence and `credit_card` any 13–16 digits (no Luhn check), so
+unrelated values (order IDs, Unix timestamps, long numeric tokens) can be
+over-redacted. That is the intended privacy-first failure mode — over-redact
+rather than leak — but it means redaction can touch non-PII. See
+[docs/PRD.md](docs/PRD.md) §3.2 NG4 for what TraceGuard does *not* claim to
+catch. Expand `benchmark/tasks.py` and rerun to re-evaluate on your own data.
 
 ---
 
 ## What's deferred (not in v0.1 core)
 
-- `traceguard diff <trace_id>` and `traceguard report` CLI subcommands
-  (ROADMAP Weeks 5–6).
-- Self-validation benchmark with recall/precision numbers (ROADMAP Week 7).
 - PyPI publish, demo video, Show HN (ROADMAP Week 8).
 - ML-based PII detection (Presidio integration), non-Anthropic providers,
   streaming response coverage, A2A trace context propagation.
